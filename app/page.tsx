@@ -1,17 +1,16 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import QuizCard from '@/components/QuizCard';
 
-type verb = {
+export type VerbType = {
   verb:string,
   pastSimple:string,
   pastParticiple:string,
   frenchTranslation:string
 }
-const irregularVerbs : verb[] =[
+const irregularVerbs : VerbType[] =[
   { verb: 'arise', pastSimple: 'arose', pastParticiple: 'arisen', frenchTranslation: 'survenir' },
   { verb: 'awake', pastSimple: 'awoke', pastParticiple: 'awoken', frenchTranslation: 'se réveiller' },
   { verb: 'be', pastSimple: 'was/were', pastParticiple: 'been', frenchTranslation: 'être' },
@@ -139,33 +138,35 @@ const QuizResult = ({ score, totalQuestions }:QuizResultProps) => (
 );
 
 const App = () => {
-  const [selectedVerbs, setSelectedVerbs] = useState([]);
-  const [numQuestions, setNumQuestions] = useState(5);
-  const [quizQuestions, setQuizQuestions] = useState([]);
+  const [selectedVerbs, setSelectedVerbs] = useState<VerbType[]>([]);
+  const [quizQuestions, setQuizQuestions] = useState<VerbType[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [quizComplete, setQuizComplete] = useState(false);
   const [quizStarted, setQuizStarted] = useState(false);
 
-  const handleVerbSelection = (verb:verb) => {
+  const handleVerbSelection = (verb:VerbType) => {
     setSelectedVerbs(prev => 
       prev.includes(verb) ? prev.filter(v => v !== verb) : [...prev, verb]
     );
   };
 
   const startQuiz = () => {
-    if (selectedVerbs.length >= numQuestions) {
+    
       const shuffled = [...selectedVerbs].sort(() => 0.5 - Math.random());
-      setQuizQuestions(shuffled.slice(0, numQuestions));
+      setQuizQuestions(shuffled.slice(0, selectedVerbs.length));
       setQuizStarted(true);
-    } else {
-      alert(`Please select at least ${numQuestions} verbs to start the quiz.`);
-    }
+    
   };
 
-  const handleAnswer = (answers:verb, correctVerb:verb) => {
+  const handleAnswer = (answers:Partial<VerbType>, correctVerb:VerbType) => {
     setTimeout(() => {
-      const isCorrect = Object.keys(answers).every(field => answers[field] === correctVerb[field]);
+      
+      //a bit tricky type script typing thing. powerful !
+      const isCorrect = (Object.keys(answers) as Array<keyof VerbType>).every(
+        field => answers[field] === correctVerb[field]
+      );
+     
       if (isCorrect) setScore(prev => prev + 1);
       if (currentQuestionIndex < quizQuestions.length - 1) {
         setCurrentQuestionIndex(prev => prev + 1);
