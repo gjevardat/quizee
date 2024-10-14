@@ -1,13 +1,17 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import QuizCard from '@/components/QuizCard';
 
-// Sample data for irregular verbs
-const irregularVerbs =[
+type verb = {
+  verb:string,
+  pastSimple:string,
+  pastParticiple:string,
+  frenchTranslation:string
+}
+const irregularVerbs : verb[] =[
   { verb: 'arise', pastSimple: 'arose', pastParticiple: 'arisen', frenchTranslation: 'survenir' },
   { verb: 'awake', pastSimple: 'awoke', pastParticiple: 'awoken', frenchTranslation: 'se réveiller' },
   { verb: 'be', pastSimple: 'was/were', pastParticiple: 'been', frenchTranslation: 'être' },
@@ -120,9 +124,11 @@ const irregularVerbs =[
 ]
 ;
 
-
-
-const QuizResult = ({ score, totalQuestions }) => (
+type QuizResultProps = {
+  score:number,
+  totalQuestions:number
+}
+const QuizResult = ({ score, totalQuestions }:QuizResultProps) => (
   <Card className="w-full max-w-md mx-auto my-4">
     <CardHeader className="text-lg font-bold">Quiz Result</CardHeader>
     <CardContent>
@@ -132,92 +138,85 @@ const QuizResult = ({ score, totalQuestions }) => (
   </Card>
 );
 
-
 const App = () => {
-  const [selectedVerbs, setSelectedVerbs] = useState(irregularVerbs);
+  const [selectedVerbs, setSelectedVerbs] = useState([]);
   const [numQuestions, setNumQuestions] = useState(5);
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [quizComplete, setQuizComplete] = useState(false);
-  
+  const [quizStarted, setQuizStarted] = useState(false);
 
-  useEffect(() => {
-    if (selectedVerbs.length > 0 && numQuestions > 0) {
-      const shuffled = [...selectedVerbs].sort(() => 0.5 - Math.random());
-      setQuizQuestions(shuffled.slice(0, numQuestions));
-    }
-  }, [selectedVerbs, numQuestions]);
-
-
-  const handleAnswer = (answers, correctVerb) => {
-    
-    setTimeout(() => {
-     const isCorrect = Object.keys(answers).every(field => answers[field] === correctVerb[field]);
-    if (isCorrect) setScore(prev => prev + 1);
-    if( !isCorrect) return;
-     if (currentQuestionIndex < quizQuestions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
-    } else {
-      setQuizComplete(true);
-  
-    } 
-   },2000)
-   
-    
+  const handleVerbSelection = (verb:verb) => {
+    setSelectedVerbs(prev => 
+      prev.includes(verb) ? prev.filter(v => v !== verb) : [...prev, verb]
+    );
   };
 
-  const handleVerbSelection = ( verb) => {
-    console.log("selected verb", verb)
-    setSelectedVerbs(prev=> ([...prev,verb]))
-  }
+  const startQuiz = () => {
+    if (selectedVerbs.length >= numQuestions) {
+      const shuffled = [...selectedVerbs].sort(() => 0.5 - Math.random());
+      setQuizQuestions(shuffled.slice(0, numQuestions));
+      setQuizStarted(true);
+    } else {
+      alert(`Please select at least ${numQuestions} verbs to start the quiz.`);
+    }
+  };
 
-
+  const handleAnswer = (answers:verb, correctVerb:verb) => {
+    setTimeout(() => {
+      const isCorrect = Object.keys(answers).every(field => answers[field] === correctVerb[field]);
+      if (isCorrect) setScore(prev => prev + 1);
+      if (currentQuestionIndex < quizQuestions.length - 1) {
+        setCurrentQuestionIndex(prev => prev + 1);
+      } else {
+        setQuizComplete(true);
+      }
+    }, 2000);
+  };
 
   const restartQuiz = () => {
+    setSelectedVerbs([]);
     setCurrentQuestionIndex(0);
     setScore(0);
     setQuizComplete(false);
-    const shuffled = [...selectedVerbs].sort(() => 0.5 - Math.random());
-    setQuizQuestions(shuffled.slice(0, numQuestions));
+    setQuizStarted(false);
+    setQuizQuestions([]);
   };
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">English Irregular Verbs Quiz</h1>
       
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold mb-2">Select Verbs</h2>
-        {irregularVerbs.map(verb => (
-          <Button
-            key={verb.verb}
-            onClick={() => handleVerbSelection(verb)}
-            className={`m-1 ${selectedVerbs.includes(verb) ? 'bg-blue-500' : 'bg-gray-300'}`}
-          >
-            {verb.verb}
-          </Button>
-        ))}
-      </div>
-      
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700">Number of Questions</label>
-        <Select value={numQuestions} onValueChange={setNumQuestions}>
-          <SelectTrigger>
-            <SelectValue>{numQuestions}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {[5, 10, 15, 20].map(num => (
-              <SelectItem key={num} value={num}>{num}</SelectItem>
+      {!quizStarted && (
+        <>
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold mb-2">Select Verbs</h2>
+            {irregularVerbs.map(verb => (
+              <Button
+                key={verb.verb}
+                onClick={() => handleVerbSelection(verb)}
+                className={`m-1 ${selectedVerbs.includes(verb) ? 'bg-blue-500' : 'bg-gray-300'}`}
+              >
+                {verb.verb}
+              </Button>
             ))}
-          </SelectContent>
-        </Select>
-      </div>
+          </div>
+          
+          
 
-      {!quizComplete && quizQuestions.length > 0 && (
+          <Button onClick={startQuiz} disabled={selectedVerbs.length < 1}>
+            Start Quiz
+          </Button>
+        </>
+      )}
+
+      {quizStarted && !quizComplete && quizQuestions.length > 0 && (
         <QuizCard
           verb={quizQuestions[currentQuestionIndex]}
           onAnswer={handleAnswer}
-          currentQuestionIndex={currentQuestionIndex+1}
+          currentQuestionIndex={currentQuestionIndex + 1}
+          totalQuestions={selectedVerbs.length}
         />
       )}
 
@@ -227,8 +226,6 @@ const App = () => {
           <Button onClick={restartQuiz}>Retry Quiz</Button>
         </>
       )}
-
-      
     </div>
   );
 };
