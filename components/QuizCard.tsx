@@ -8,9 +8,10 @@ type QuizCardProps = {
   verb: VerbType;
   onAnswer: (answers: Partial<VerbType>, correctVerb: VerbType) => void;
   currentQuestionIndex: number;
+  totalQuestions:number
 };
 
-const QuizCard = ({ verb, onAnswer, currentQuestionIndex }: QuizCardProps) => {
+const QuizCard = ({ verb, onAnswer, currentQuestionIndex,totalQuestions }: QuizCardProps) => {
   const [answers, setAnswers] = useState<Partial<VerbType>>({
     verb: "",
     pastSimple: "",
@@ -39,7 +40,7 @@ const QuizCard = ({ verb, onAnswer, currentQuestionIndex }: QuizCardProps) => {
 
   return (
     <Card className="w-full max-w-md mx-auto my-4">
-      <CardHeader className="text-lg font-bold">Quiz Question {currentQuestionIndex}</CardHeader>
+      <CardHeader className="text-lg font-bold">Quiz Question {currentQuestionIndex}/{totalQuestions}</CardHeader>
       <CardContent>
         {Object.keys(answers).map((field) => (
           <div key={field} className="mb-2">

@@ -223,7 +223,7 @@ const App = () => {
 
       {quizComplete && (
         <>
-          <QuizResult score={score} totalQuestions={numQuestions} />
+          <QuizResult score={score} totalQuestions={selectedVerbs.length} />
           <Button onClick={restartQuiz}>Retry Quiz</Button>
         </>
       )}
