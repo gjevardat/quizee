@@ -190,23 +190,25 @@ const App = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto  max-w-md p-4">
       
       
       {!quizStarted && (
         <>
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold mb-2">Select Verbs</h2>
+          <div className="pb-4">
+            <h2 className="text-xl font-semibold mb-2">Selected Verbs : {selectedVerbs.length} out of {irregularVerbs.length}</h2>
             {irregularVerbs.map(verb => (
               <Button
                 key={verb.verb}
                 onClick={() => handleVerbSelection(verb)}
-                className={`m-1 ${selectedVerbs.includes(verb) ? 'bg-blue-500' : 'bg-gray-300'}`}
+                className={`m-0.5 ${selectedVerbs.includes(verb) ? 'bg-blue-500' : 'bg-gray-300'}`}
+                size={"sm"}
               >
                 {verb.verb}
               </Button>
             ))}
           </div>
+          
           
           
 
