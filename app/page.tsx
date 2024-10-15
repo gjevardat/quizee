@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import QuizCard from '@/components/QuizCard';
 
@@ -125,15 +125,19 @@ const irregularVerbs : VerbType[] =[
 
 type QuizResultProps = {
   score:number,
-  totalQuestions:number
+  totalQuestions:number,
+  restartQuiz: ()=>void
 }
-const QuizResult = ({ score, totalQuestions }:QuizResultProps) => (
+const QuizResult = ({ score, totalQuestions, restartQuiz }:QuizResultProps) => (
   <Card className="w-full max-w-md mx-auto my-4">
     <CardHeader className="text-lg font-bold">Quiz Result</CardHeader>
     <CardContent>
       <p>Your score: {score} out of {totalQuestions}</p>
       <p>Percentage: {((score / totalQuestions) * 100).toFixed(2)}%</p>
     </CardContent>
+    <CardFooter>
+    <Button onClick={restartQuiz}>Retry Quiz</Button>
+    </CardFooter>
   </Card>
 );
 
@@ -187,7 +191,7 @@ const App = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">English Irregular Verbs Quiz</h1>
+      
       
       {!quizStarted && (
         <>
@@ -223,8 +227,7 @@ const App = () => {
 
       {quizComplete && (
         <>
-          <QuizResult score={score} totalQuestions={selectedVerbs.length} />
-          <Button onClick={restartQuiz}>Retry Quiz</Button>
+          <QuizResult score={score} totalQuestions={selectedVerbs.length} restartQuiz={restartQuiz} />
         </>
       )}
     </div>

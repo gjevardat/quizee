@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader } from "./ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { VerbType as VerbType } from "@/app/page";
+import { Label } from "./ui/label";
 
 type QuizCardProps = {
   verb: VerbType;
@@ -39,14 +40,19 @@ const QuizCard = ({ verb, onAnswer, currentQuestionIndex,totalQuestions }: QuizC
   }, [verb]);
 
   return (
+<div>
+  
+
+
     <Card className="w-full max-w-md mx-auto my-4">
-      <CardHeader className="text-lg font-bold">Quiz Question {currentQuestionIndex}/{totalQuestions}</CardHeader>
+    <CardHeader>
+    <CardTitle>Quiz Question {currentQuestionIndex}/{totalQuestions}</CardTitle>
+    
+    </CardHeader>
       <CardContent>
         {Object.keys(answers).map((field) => (
           <div key={field} className="mb-2">
-            <label className="block text-sm font-medium text-gray-700">
-              {field.charAt(0).toUpperCase() + field.slice(1)}
-            </label>
+           <Label>{field.charAt(0).toUpperCase() + field.slice(1)}</Label>  
             <Input
               type="text"
               value={answers[field as keyof VerbType] || ""}
@@ -64,9 +70,14 @@ const QuizCard = ({ verb, onAnswer, currentQuestionIndex,totalQuestions }: QuizC
             />
           </div>
         ))}
-        <Button onClick={checkAnswer}>Check Answer</Button>
+       
       </CardContent>
+      <CardFooter className="flex justify-between">
+        
+        <Button onClick={checkAnswer}>Check Answer</Button>
+      </CardFooter>
     </Card>
+    </div>
   );
 };
 
