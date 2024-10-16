@@ -1,13 +1,16 @@
+import IrregularVerbsBoard from '@/components/IrregularVerbsBoard';
 import QuizzApp from '@/components/QuizApp';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export type VerbType = {
-  verb:string,
-  pastSimple:string,
-  pastParticiple:string,
-  frenchTranslation:string
+  verb: string,
+  pastSimple: string,
+  pastParticiple: string,
+  frenchTranslation: string
 }
 
-const irregularVerbs : VerbType[] =[
+const irregularVerbs: VerbType[] = [
   { verb: 'arise', pastSimple: 'arose', pastParticiple: 'arisen', frenchTranslation: 'survenir' },
   { verb: 'awake', pastSimple: 'awoke', pastParticiple: 'awoken', frenchTranslation: 'se réveiller' },
   { verb: 'be', pastSimple: 'was/were', pastParticiple: 'been', frenchTranslation: 'être' },
@@ -118,12 +121,28 @@ const irregularVerbs : VerbType[] =[
   { verb: 'win', pastSimple: 'won', pastParticiple: 'won', frenchTranslation: 'gagner' },
   { verb: 'write', pastSimple: 'wrote', pastParticiple: 'written', frenchTranslation: 'écrire' }
 ]
-;
+  ;
 
 
-export default function Page(){
+export default function Page() {
 
-  return (<QuizzApp verbs={irregularVerbs}/>);
+  return (
+    <>
+      <Card className="w-full max-w-3xl mx-auto">
+        <CardHeader>
+          <CardTitle>Irregular Verbs</CardTitle>
+        </CardHeader>
+        <ScrollArea className="h-[calc(100vh-200px)] min-h-[400px]">
+          <CardContent>
+            <IrregularVerbsBoard verbs={irregularVerbs} />
+          </CardContent>
+        </ScrollArea>
+      </Card>
+
+      <QuizzApp verbs={irregularVerbs} />
+    </>
+
+  );
 }
 
 
