@@ -1,3 +1,4 @@
+import VerbsTable from '@/components/IrregularVerbsBoard';
 import IrregularVerbsBoard from '@/components/IrregularVerbsBoard';
 import QuizzApp from '@/components/QuizApp';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -128,16 +129,11 @@ export default function Page() {
 
   return (
     <>
-      <Card className="w-full max-w-3xl mx-auto">
-        <CardHeader>
-          <CardTitle>Irregular Verbs</CardTitle>
-        </CardHeader>
-        <ScrollArea className="h-[calc(100vh-200px)] min-h-[400px]">
-          <CardContent>
-            <IrregularVerbsBoard verbs={irregularVerbs} />
-          </CardContent>
-        </ScrollArea>
-      </Card>
+     
+            <VerbsTable verbs={irregularVerbs} />
+     
+       
+     
 
       <QuizzApp verbs={irregularVerbs} />
     </>
