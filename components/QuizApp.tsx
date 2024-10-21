@@ -79,22 +79,7 @@ const QuizzApp = ({verbs}:{verbs:VerbType[]}) => {
       
       {!quizStarted && (
         <>
-          <div className="pb-4">
-            <h2 className="text-xl font-semibold mb-2">Selected Verbs : {selectedVerbs.length} out of {verbs.length}</h2>
-            {verbs.map(verb => (
-              <Button
-                key={verb.verb}
-                onClick={() => handleVerbSelection(verb)}
-                className={`m-0.5 ${selectedVerbs.includes(verb) ? 'bg-blue-500' : 'bg-gray-300'}`}
-                size={"sm"}
-              >
-                {verb.verb}
-              </Button>
-            ))}
-          </div>
-          
-          
-          
+                  
 
           <Button onClick={startQuiz} disabled={selectedVerbs.length < 1}>
             Start Quiz

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import {
   Table,
   TableBody,
-  TableCaption,
+  
   TableCell,
   TableHead,
   TableHeader,
@@ -11,126 +11,164 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Checkbox } from "@/components/ui/checkbox"
+
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { VerbType } from '@/app/page';
+import CustomToolbar from './SelectionToolbar';
+import { Label } from './ui/label';
 
 
 
-const VerbsTable = ({verbs}:{verbs:VerbType[]}) => {
-  const [irregularVerbs, setIrregularVerbs] = useState<VerbType[]>(verbs);
-  const [selectedVerbs, setSelectedVerbs] = useState<VerbType[]>([]);
-  const [editingId, setEditingId] = useState(null);
+const VerbsTable = ({ verbs }: { verbs: VerbType[] }) => {
+  
 
-  const handleCheckboxChange = (id) => {
-    setSelectedVerbs(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
-  };
-
+  const [verbsTable, setVerbsTable] = useState<VerbType[]>(verbs);
+  const [quizzStarted,setQuizzStarted] = useState<boolean>(false);
+  const [quizzEvaluated,setQuizzEvaluated] = useState<boolean>(false);
+  
   const handleStartQuiz = () => {
-   // const quizVerbs = irregularVerbs.filter(verb => selectedVerbs[verb.verb]);
-   // console.log('Starting quiz with selected verbs:', quizVerbs);
-    // Here you would typically pass these verbs to your quiz component or start the quiz
+    resetRandomFields();
+    setQuizzStarted(true)
   };
 
-  const handleEdit = (id) => {
-    setEditingId(id);
-  };
+  const handleInputChange = (id:number, field:string, value:string) => {
+    console.log(`change : ${id} ${field} ${value}`)
+    setVerbsTable(prev=>
+      prev.map( v => {
 
-  const handleSave = (id) => {
-    setEditingId(null);
-  };
+        
+        return v.index === id
+          ? { ...v, [field]:value}:v;
 
-  const handleInputChange = (id, field, value) => {
-    setIrregularVerbs(prevVerbs =>
-      prevVerbs.map(verb =>
-        verb.verb === id ? { ...verb, [field]: value } : verb
+      }
       )
     );
   };
 
-    const selectRandom= () =>{
-        setSelectedVerbs(irregularVerbs.sort(() => 0.5 - Math.random()).slice(0,10));
-    }
+  const handleSelectRandom = (count:number) => {
+    setVerbsTable((prev) => prev.sort(() => 0.5 - Math.random()).slice(0, count));
+  }
+
+  const handleClearSelection = () => {
+    setVerbsTable(verbs);
+  }
+
+
+  function resetRandomFields() {
+
+    setVerbsTable(
+     verbsTable.map(verb => {
+      // List of field names
+      const fields: (keyof VerbType)[] = ['verb', 'pastSimple', 'pastParticiple', 'frenchTranslation'];
+  
+      // Randomly choose one field to keep
+      const randomField = fields[Math.floor(Math.random() * fields.length)];
+  
+      // Create a new object with only the random field kept and others reset
+      return {
+        index: verb.index,
+        verb: randomField === 'verb' ? verb.verb : '',
+        pastSimple: randomField === 'pastSimple' ? verb.pastSimple : '',
+        pastParticiple: randomField === 'pastParticiple' ? verb.pastParticiple : '',
+        frenchTranslation: randomField === 'frenchTranslation' ? verb.frenchTranslation : ''
+      };
+    }));
+  
+  }
+
+  function handleFinishQuiz(): void {
+    setQuizzEvaluated(true)
+    verbsTable.every((verb) => {
+        console.log(`answer ${verb.index}:${verb.verb} truth ${verbs.find(v=> v.index == verb.index)?.verb}`);
+      (verb === verbs[verb.index])
+    
+    });
+    
+  
+  }
+
+  
+  function quizzOk() : boolean {
+    
+    let result = verbsTable.every(verb => {
+
+      let match:VerbType|undefined = verbs.find(v=> v.index == verb.index)
+      console.log(`verb:${verb.verb} match:${match?.verb}`)
+      
+      return verb==match;  
+      
+  })
+  console.log("result is ", result);
+  return result
+  };
 
   return (
-    <Card className="w-full max-w-5xl mx-auto">
-      <CardHeader>
-        <CardTitle>Editable Irregular Verbs</CardTitle>
-        <Button onClick={selectRandom}>10 random</Button>
-      </CardHeader>
-      <CardContent>
-        <ScrollArea className="h-[calc(100vh-300px)] min-h-[400px]">
+    <Card className="w-full max-w-5xl mx-auto flex flex-col h-[calc(100vh-200px)]">
+    <CardHeader>
+      <CardTitle>Verbes irréguliers en anglais</CardTitle>
+      {!quizzStarted && 
+      <>
+      <CustomToolbar
+        onClearSelection={handleClearSelection}
+        onSelectRandom={handleSelectRandom}
+      />
+      <Button onClick={handleStartQuiz}>Start Quiz with {verbsTable.length} verbs</Button>
+      </>
+      }
+
+      
+    </CardHeader>
+    <CardContent className="flex-grow overflow-hidden">
+      <ScrollArea className="h-full">
+        
           <Table>
-            <TableCaption>Edit and select verbs for your quiz</TableCaption>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[50px]">Select</TableHead>
                 <TableHead>Verb</TableHead>
                 <TableHead>Past Simple</TableHead>
                 <TableHead>Past Participle</TableHead>
                 <TableHead>French Translation</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {irregularVerbs.map((verb:VerbType) => (
-                <TableRow key={verb.verb}>
+              {verbsTable.map((verb: VerbType) => (
+                
+
+                <TableRow key={verb.index}>
                   <TableCell>
-                    <Checkbox
-                      checked={selectedVerbs[verb.verb] || false}
-                      onCheckedChange={() => handleCheckboxChange(verb.verb)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {editingId === verb.verb ? (
+                     
+                     {/* {quizzStarted === true ?  */}
                       <Input
-                        value={verb.verb}
-                        onChange={(e) => handleInputChange(verb.verb, 'verb', e.target.value)}
+                       // value={verbsTable[verb.index]!=undefined?verbsTable[verb.index].verb:''}
+                        onChange={(e) => handleInputChange(verb.index, 'verb', e.target.value)}
                       />
-                    ) : (
-                      verb.verb
-                    )}
+                    
                   </TableCell>
                   <TableCell>
-                    {editingId === verb.verb ? (
                       <Input
-                        value={verb.pastSimple}
-                        onChange={(e) => handleInputChange(verb.verb, 'pastSimple', e.target.value)}
+                        value={verbsTable[verb.index]?.pastSimple}
+                        onChange={(e) => handleInputChange(verb.index, 'pastSimple', e.target.value)}
+                        disabled={quizzStarted==true?false:true}
+                        className={quizzStarted==false?"disabled:opacity-100 disabled:cursor-default":""}
                       />
-                    ) : (
-                      verb.pastSimple
-                    )}
                   </TableCell>
                   <TableCell>
-                    {editingId === verb.verb ? (
                       <Input
-                        value={verb.pastParticiple}
-                        onChange={(e) => handleInputChange(verb.verb, 'pastParticiple', e.target.value)}
+                        value={verbsTable[verb.index]?.pastParticiple}
+                        onChange={(e) => handleInputChange(verb.index, 'pastParticiple', e.target.value)}
+                        disabled={quizzStarted==true?false:true}
+                        className={quizzStarted==false?"disabled:opacity-100 disabled:cursor-default":""}
                       />
-                    ) : (
-                      verb.pastParticiple
-                    )}
                   </TableCell>
                   <TableCell>
-                    {editingId === verb.verb ? (
                       <Input
-                        value={verb.frenchTranslation}
-                        onChange={(e) => handleInputChange(verb.verb, 'frenchTranslation', e.target.value)}
+                        value={verbsTable[verb.index]?.frenchTranslation}
+                        onChange={(e) => handleInputChange(verb.index, 'frenchTranslation', e.target.value)}
+                        disabled={quizzStarted==true?false:true}
+                        className={quizzStarted==false?"disabled:opacity-100 disabled:cursor-default":""}
                       />
-                    ) : (
-                      verb.frenchTranslation
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {editingId === verb.verb ? (
-                      <Button onClick={() => handleSave(verb.verb)}>Save</Button>
-                    ) : (
-                      <Button onClick={() => handleEdit(verb.verb)}>Edit</Button>
-                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -138,12 +176,15 @@ const VerbsTable = ({verbs}:{verbs:VerbType[]}) => {
           </Table>
         </ScrollArea>
       </CardContent>
-      <CardFooter className="flex justify-between">
-        <div>{Object.values(selectedVerbs).filter(Boolean).length} verbs selected</div>
-        <Button onClick={handleStartQuiz}>Start Quiz</Button>
-      </CardFooter>
+      {quizzStarted && 
+      <CardFooter>
+      <Button onClick={handleFinishQuiz}>Finish Quiz</Button>
+      <Label> { quizzEvaluated? quizzOk()?"Success":"Failure":""}</Label>
+      </CardFooter>}
     </Card>
   );
 };
 
 export default VerbsTable;
+
+
