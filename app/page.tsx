@@ -144,6 +144,13 @@ const irregularVerbs: VerbType[] = [
     index: 18
   },
   {
+    verb: 'burst',
+    pastSimple: 'burst',
+    pastParticiple: 'burst',
+    frenchTranslation: 'éclater',
+    index: 1000
+  },
+  {
     verb: 'buy',
     pastSimple: 'bought',
     pastParticiple: 'bought',

@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -16,6 +16,7 @@ import { VerbType } from '@/app/page';
 import CustomToolbar from './SelectionToolbar';
 import { Label } from './ui/label';
 import isEqual from 'lodash/isEqual';
+import { debounce } from 'lodash';
 
 
 export type VerbWithCorrect = VerbType & {
@@ -30,6 +31,7 @@ const VerbsTable = ({ verbs }: { verbs: VerbType[] }) => {
   const [quizzStarted, setQuizzStarted] = useState<boolean>(false);
   const [quizzEvaluated, setQuizzEvaluated] = useState<boolean>(false);
   const [quizzResult,setQuizzResult] = useState<boolean>(false)
+  const [selectedRange, setSelectedRange] = useState<number[]>([0,10]);
   const handleStartQuiz = () => {
     resetRandomFields();
     setQuizzStarted(true);
@@ -62,6 +64,13 @@ const VerbsTable = ({ verbs }: { verbs: VerbType[] }) => {
   const handleClearSelection = () => {
     setVerbsTable(verbs);
   }
+
+  useEffect(() => {
+       const [a, b] = selectedRange;
+    setVerbsTable(verbs.slice(a, b));
+  }, [selectedRange]);
+  
+
 
 
   function resetRandomFields() {
@@ -97,30 +106,29 @@ const VerbsTable = ({ verbs }: { verbs: VerbType[] }) => {
     setQuizzResult(result);
 
   }
-
-
+  
   return (
     <Card className="w-full max-w-5xl mx-auto flex flex-col h-[calc(100vh-200px)]">
-      <CardHeader>
-        <CardTitle>Verbes irréguliers en anglais</CardTitle>
-       
+      <CardHeader>    
           <>
             <CustomToolbar
               onClearSelection={handleClearSelection}
               onSelectRandom={handleSelectRandom}
+              onSelectRange={setSelectedRange}
+              onStartQuiz={handleStartQuiz}
+              quizzStarted={quizzStarted}
+              onFinishQuizz={handleFinishQuiz}
             />
-            <Button onClick={handleStartQuiz}>Start Quiz with {verbsTable.length} verbs</Button>
           </>
 
 
       </CardHeader>
       <CardContent className="flex-grow overflow-hidden">
         <ScrollArea className="h-full">
-
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Id</TableHead>
+              {/*   <TableHead>Id</TableHead> */}
                 <TableHead>Verb</TableHead>
                 <TableHead>Past Simple</TableHead>
                 <TableHead>Past Participle</TableHead>
@@ -133,22 +141,12 @@ const VerbsTable = ({ verbs }: { verbs: VerbType[] }) => {
 
                 <TableRow key={index}>
                   <TableCell>
-
-
-                    <Input
-                      value={verbsTable[index].index}
-                      readOnly={true}
-                    />
-
-                  </TableCell>
-                  <TableCell>
-
-
                     <Input
                       value={verbsTable[index].verb}
                       onChange={(e) => handleInputChange(index, 'verb', e.target.value)}
+                      disabled={quizzStarted == true ? false : true}
+                      className={quizzStarted == false ? "disabled:opacity-100 disabled:cursor-default" : ""}
                     />
-
                   </TableCell>
                   <TableCell>
                     <Input
@@ -180,11 +178,6 @@ const VerbsTable = ({ verbs }: { verbs: VerbType[] }) => {
           </Table>
         </ScrollArea>
       </CardContent>
-      {quizzStarted &&
-        <CardFooter>
-          <Button onClick={handleFinishQuiz}> Finish Quiz</Button>
-          <Label> {quizzEvaluated ? quizzResult ? "Success" : "Failure" : ""}</Label>
-        </CardFooter>}
     </Card>
   );
 };
