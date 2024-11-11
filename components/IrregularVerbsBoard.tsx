@@ -5,13 +5,6 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Check, X } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 import { VerbType } from '@/app/page';
@@ -104,6 +97,8 @@ const VerbsTable: React.FC<VerbsTableProps> = ({ verbs }) => {
 
     verbsTable.forEach((verb) => {
       total++;
+      console.log("got ",verb)
+      console.log("expected", verbs[verb.index])
         if ( isEqual(verb,verbs[verb.index]) ){
             correct++;
       }
