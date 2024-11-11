@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 
 import { VerbType } from '@/app/page';
 import SelectionToolbar from './SelectionToolbar';
+import { isEqual } from 'lodash';
 
 export type QuizState = 'preparing' | 'inProgress' | 'showing-results';
 
@@ -101,14 +102,10 @@ const VerbsTable: React.FC<VerbsTableProps> = ({ verbs }) => {
     let total = 0;
 
     verbsTable.forEach((verb) => {
-      ['verb', 'pastSimple', 'pastParticiple', 'frenchTranslation'].forEach(field => {
-        if (verb[field as keyof VerbType] !== '') {
-          total++;
-          if (isFieldCorrect(verb, field as keyof VerbType)) {
+      total++;
+        if ( isEqual(verb,verbs[verb.index]) ){
             correct++;
-          }
-        }
-      });
+      }
     });
 
     return { correct, total };
