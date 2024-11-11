@@ -1,169 +1,242 @@
+'use client';
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import * as Slider from '@radix-ui/react-slider';
+import { ChevronUp, ChevronDown, Dices } from 'lucide-react';
+import { QuizState } from './IrregularVerbsBoard';
 
-import { Input } from '@/components/ui/input';
-import * as Slider from "@radix-ui/react-slider";
+interface SelectionToolbarProps {
+  onClearSelection: () => void;
+  onSelectRandom: (count: number) => void;
+  onSelectRange: (range: [number, number]) => void;
+  onStartQuiz: () => void;
+  onFinishQuizz: () => void;
+  quizState: QuizState;
+}
 
-import {
-  ChevronDown,
-  ChevronUp,
-  Dices,
-  RotateCcw as RotateCcwIcon,
-  Play,
-  Square
-} from 'lucide-react';
+type SelectionMode = 'first' | 'random';
 
-const SelectionToolbar = ({
+const MAX_ITEMS = 100;
+const DEFAULT_RANDOM_COUNT = 10;
+const DEFAULT_RANGE: [number, number] = [0, 10];
+
+const PRESET_RANGES = [
+  { label: 'First 10', value: 10 },
+  { label: 'First 20', value: 20 },
+  { label: 'First 30', value: 30 },
+] as const;
+
+const SelectionToolbar: React.FC<SelectionToolbarProps> = ({
   onClearSelection,
   onSelectRandom,
   onSelectRange,
   onStartQuiz,
-  maxItems = 109,
-  quizzStarted,
-  onFinishQuizz
+  onFinishQuizz,
+  quizState
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectionMode, setSelectionMode] = useState('first');
-  const [randomCount, setRandomCount] = useState(10);
-  const [range, setRange] = useState([1, 10]);
+  const [selectionMode, setSelectionMode] = useState<SelectionMode>('first');
+  const [randomCount, setRandomCount] = useState(DEFAULT_RANDOM_COUNT);
+  const [range, setRange] = useState<[number, number]>(DEFAULT_RANGE);
+
+  const handleRangeChange = (newRange: number[]) => {
+    const typedRange: [number, number] = [newRange[0], newRange[1]];
+    setSelectionMode('first');
+    setRange(typedRange);
+    onSelectRange(typedRange);
+  };
+
+  const handleRandomSelection = (count: number) => {
+    const validCount = Math.min(Math.max(1, count), MAX_ITEMS);
+    setSelectionMode('random');
+    setRandomCount(validCount);
+    onSelectRandom(validCount);
+  };
 
   const getSelectionText = () => {
-    switch (selectionMode) {
-      case 'first':
-        return `First ${range[1]} verbs`;
-      case 'random':
-        return `Random ${randomCount} verbs`;
-      case 'range':
-        return `Verbs ${range[0]} - ${range[1]}`;
-      default:
-        return 'Select verbs';
+    if (selectionMode === 'first') {
+      return `Selected verbs ${range[0]} to ${range[1]}`;
     }
+    return `Random ${randomCount} verbs`;
   };
 
-  const handleRangeChange = (newRange) => {
-    setRange(newRange);
-    onSelectRange(newRange);
-  };
-
-  const handleRandomSelection = () => {
-    setSelectionMode('random');
-    onSelectRandom(randomCount);
-  };
-
-
-
-  const handleFirstNSelection = () => {
+  const handleClearSelection = () => {
+    onClearSelection();
     setSelectionMode('first');
-    onSelectRange([1, range[1]]);
+    setRange(DEFAULT_RANGE);
+    setIsOpen(false);
   };
+
+  const renderRangeButtons = () => (
+    <div className="grid grid-cols-3 gap-2 mb-3">
+      {PRESET_RANGES.map(({ label, value }) => (
+        <Button 
+          key={value}
+          variant={selectionMode === 'first' && range[1] === value ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => handleRangeChange([0, value])}
+        >
+          {label}
+        </Button>
+      ))}
+    </div>
+  );
+
+  const renderRandomButtons = () => (
+    <div className="grid grid-cols-3 gap-2 mb-3">
+      {PRESET_RANGES.map(({ value }) => (
+        <Button 
+          key={value}
+          variant={selectionMode === 'random' && randomCount === value ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => handleRandomSelection(value)}
+        >
+          Random {value}
+        </Button>
+      ))}
+    </div>
+  );
 
   return (
-    <div className="w-full max-w-md mx-auto space-y-2">
-      {/* Selection Button */}
-      <div className="relative">
-        <Button
-          variant="outline"
-          className="w-full justify-between"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <span>{getSelectionText()}</span>
-          {isOpen ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
-        </Button>
+    <div className="relative">
+      <Button
+        variant="outline"
+        className="w-full justify-between"
+        onClick={() => setIsOpen(!isOpen)}
+        type="button"
+      >
+        <span>{getSelectionText()}</span>
+        {isOpen ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
+      </Button>
 
-        {/* Dropdown Panel */}
-        {isOpen && (
-          <div className="absolute z-10 w-full mt-1 bg-background border rounded-lg shadow-lg">
-            <div className="p-4 space-y-4">
-              {/* Selection Mode Buttons */}
+      {isOpen && (
+        <div className="absolute z-10 w-full mt-1 bg-background border rounded-lg shadow-lg">
+          <div className="p-4 space-y-4">
+            {/* Range Selection */}
+            <div className="p-4 border rounded-lg space-y-3">
+              <Button
+                variant={selectionMode === 'first' ? 'default' : 'ghost'}
+                className="w-full justify-start"
+                onClick={() => {
+                  setSelectionMode('first');
+                  onSelectRange(range);
+                }}
+                type="button"
+              >
+                Select a range of verbs
+              </Button>
+              
+              {renderRangeButtons()}
+
               <div className="space-y-2">
-                <Button
-                  variant={selectionMode === 'first' ? 'default' : 'ghost'}
-                  className="w-full justify-start"
-                  onClick={handleFirstNSelection}
+                <div className="text-sm text-muted-foreground">
+                  Select verbs from position {range[0]} to {range[1]}
+                </div>
+                <Slider.Root
+                  className="relative flex h-5 touch-none select-none items-center"
+                  defaultValue={DEFAULT_RANGE}
+                  value={range}
+                  onValueChange={handleRangeChange}
+                  step={1}
+                  max={MAX_ITEMS}
+                  aria-label="Select range"
                 >
-                  First N verbs
-                </Button>
-                <Button
-                  variant={selectionMode === 'random' ? 'default' : 'ghost'}
-                  className="w-full justify-start"
-                  onClick={handleRandomSelection}
-                >
-                  Random verbs
-                </Button>
-
-              </div>
-
-              {/* Controls based on selection mode */}
-              <div className="p-2 bg-secondary rounded-lg space-y-4">
-                {selectionMode === 'random' ? (
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      type="number"
-                      value={randomCount}
-                      onChange={(e) => setRandomCount(parseInt(e.target.value) || 0)}
-                      className="w-20"
-                      min="1"
-                      max={maxItems}
-                    />
-                    <Button variant="outline" onClick={() => onSelectRandom(randomCount)}>
-                      <Dices className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    <Slider.Root
-                      className="relative flex h-5 touch-none select-none items-center"
-                      defaultValue={[1, 10]}
-                      value={range}
-                      onValueChange={handleRangeChange}
-                      step={1}>
-                      <Slider.Track className="relative h-[3px] grow rounded-full bg-black">
-                        <Slider.Range className="absolute h-full rounded-full bg-black" />
-                      </Slider.Track>
-                      <Slider.Thumb
-                        className="block size-5 rounded-[10px] bg-white shadow-[0_2px_10px] shadow-blackA4 hover:bg-violet3 focus:shadow-[0_0_0_5px] focus:shadow-blackA5 focus:outline-none"
-                        aria-label="Volume"
-                      />
-                      <Slider.Thumb
-                        className="block size-5 rounded-[10px] bg-white shadow-[0_2px_10px] shadow-blackA4 hover:bg-violet3 focus:shadow-[0_0_0_5px] focus:shadow-blackA5 focus:outline-none"
-                        aria-label="Volume"
-                      />
-                    </Slider.Root>
-                  </>
-                )}
+                  <Slider.Track className="relative h-[3px] grow rounded-full bg-black">
+                    <Slider.Range className="absolute h-full rounded-full bg-black" />
+                  </Slider.Track>
+                  <Slider.Thumb
+                    className="block size-5 rounded-[10px] bg-white shadow-[0_2px_10px] shadow-blackA4 hover:bg-violet3 focus:shadow-[0_0_0_5px] focus:shadow-blackA5 focus:outline-none"
+                    aria-label="Start range"
+                  />
+                  <Slider.Thumb
+                    className="block size-5 rounded-[10px] bg-white shadow-[0_2px_10px] shadow-blackA4 hover:bg-violet3 focus:shadow-[0_0_0_5px] focus:shadow-blackA5 focus:outline-none"
+                    aria-label="End range"
+                  />
+                </Slider.Root>
               </div>
             </div>
+
+            {/* Random Selection */}
+            <div className="p-4 border rounded-lg space-y-3">
+              <Button
+                variant={selectionMode === 'random' ? 'default' : 'ghost'}
+                className="w-full justify-start"
+                onClick={() => {
+                  setSelectionMode('random');
+                  onSelectRandom(randomCount);
+                }}
+                type="button"
+              >
+                Random selection
+              </Button>
+
+              {renderRandomButtons()}
+
+              <div className="flex-1">
+                <div className="text-sm text-muted-foreground mb-2">
+                  Select custom number of random verbs
+                </div>
+                <div className="flex space-x-2">
+                  <Input
+                    type="number"
+                    value={randomCount}
+                    onChange={(e) => {
+                      const count = parseInt(e.target.value) || 1;
+                      handleRandomSelection(count);
+                    }}
+                    className="w-20"
+                    min="1"
+                    max={MAX_ITEMS}
+                    aria-label="Number of random verbs"
+                  />
+                  <Button 
+                    variant="outline" 
+                    onClick={() => handleRandomSelection(randomCount)}
+                    type="button"
+                    aria-label="Randomize selection"
+                  >
+                    <Dices className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Control Buttons */}
+            <div className="flex justify-end space-x-2 pt-2">
+              <Button
+                variant="outline"
+                onClick={handleClearSelection}
+                type="button"
+              >
+                Clear Selection
+              </Button>
+            </div>
           </div>
+        </div>
+      )}
+
+      {/* Quiz Control Button */}
+      <div className="mt-2">
+        {quizState === 'preparing' && (
+          <Button 
+            onClick={onStartQuiz} 
+            className="w-full"
+            type="button"
+          >
+            Start Quiz
+          </Button>
+        )}
+        {quizState === 'inProgress' && (
+          <Button 
+            onClick={onFinishQuizz} 
+            className="w-full"
+            type="button"
+          >
+            Finish Quiz
+          </Button>
         )}
       </div>
-
-        
-      {
-        !quizzStarted && (
-          
-        <Button
-          className="w-full"
-          onClick={onStartQuiz}
-        >
-          <Play className="h-4 w-4 mr-2" />
-          Start Quizz
-        </Button>)
-      }
-      {
-        
-        quizzStarted && (
-        
-        <Button
-          className="w-full"
-          onClick={onFinishQuizz}
-        >
-          <Square className="h-4 w-4 mr-2" />
-          Stop Quizz
-        </Button>)
-      }
-      
-      
-
     </div>
   );
 };

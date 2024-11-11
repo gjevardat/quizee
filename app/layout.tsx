@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Analytics } from "@vercel/analytics/react"
-import { Book, BookOpen, Github } from "lucide-react";
+
+import {  BookOpen} from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
