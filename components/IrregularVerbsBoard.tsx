@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useState, useCallback } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Check, X } from 'lucide-react';
@@ -42,26 +42,27 @@ const ScoreDialog: React.FC<ScoreDialogProps> = ({
   const percentage = Math.round((score / total) * 100);
   
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Quiz Results</DialogTitle>
-        </DialogHeader>
-        <div className="flex flex-col items-center gap-4 py-6">
-          <div className="text-6xl font-bold text-primary">
-            {percentage}%
-          </div>
-          <p className="text-center text-muted-foreground">
-            You got <span className="font-medium text-foreground">{score}</span> correct answers
-            out of <span className="font-medium text-foreground">{total}</span> possible answers
-          </p>
-        </div>
-        <DialogFooter className="flex gap-2">
-          <Button variant="outline" onClick={onClose}>Close</Button>
-          <Button onClick={onRetry}>Try Again</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    isOpen && 
+    <Card className="w-full sm:max-w-md mx-auto">
+    <CardHeader>
+      <CardTitle>Quiz Results</CardTitle>
+    </CardHeader>
+
+    <CardContent className="flex flex-col items-center gap-4 py-6">
+      <div className="text-6xl font-bold text-primary">
+        {percentage}%
+      </div>
+      <p className="text-center text-muted-foreground">
+        You got <span className="font-medium text-foreground">{score}</span> correct answers
+        out of <span className="font-medium text-foreground">{total}</span> possible answers
+      </p>
+    </CardContent>
+
+    <CardFooter className="flex gap-2 justify-end">
+      <Button variant="outline" onClick={onClose}>Close</Button>
+      <Button onClick={onRetry}>Try Again</Button>
+    </CardFooter>
+  </Card>
   );
 };
 
@@ -117,7 +118,7 @@ const VerbsTable: React.FC<VerbsTableProps> = ({ verbs }) => {
     setShowScoreDialog(false);
   }, [verbs, selectedRange]);
 
-  const resetRandomFields = useCallback(() => {
+  /* const resetRandomFields = useCallback(() => {
     const fields: (keyof VerbType)[] = ['verb', 'pastSimple', 'pastParticiple', 'frenchTranslation'];
     
     setVerbsTable(prev =>
@@ -129,7 +130,32 @@ const VerbsTable: React.FC<VerbsTableProps> = ({ verbs }) => {
         };
       })
     );
-  }, []);
+  }, []); */
+
+
+  function resetRandomFields() {
+
+    setVerbsTable(
+      verbsTable.map(verb => {
+        // List of field names
+        const fields: (keyof VerbType)[] = ['verb', 'pastSimple', 'pastParticiple', 'frenchTranslation'];
+
+        // Randomly choose one field to keep
+        const randomField = fields[Math.floor(Math.random() * fields.length)];
+        console.log("Random field for verb:", verb.verb, randomField);
+
+        // Create a new object with only the random field kept and others reset
+        return {
+          index: verb.index,
+          verb: randomField === 'verb' ? verb.verb : '',
+          pastSimple: randomField === 'pastSimple' ? verb.pastSimple : '',
+          pastParticiple: randomField === 'pastParticiple' ? verb.pastParticiple : '',
+          frenchTranslation: randomField === 'frenchTranslation' ? verb.frenchTranslation : ''
+        };
+      }));
+
+  }
+  
 
   const handleFinishQuiz = useCallback(() => {
     const newScore = calculateScore();
