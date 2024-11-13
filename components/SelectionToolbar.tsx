@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import * as Slider from '@radix-ui/react-slider';
 import { ChevronUp, ChevronDown, Dices } from 'lucide-react';
 import { QuizState } from './IrregularVerbsBoard';
+import { VerbType } from '@/app/page';
 
 interface SelectionToolbarProps {
-  onClearSelection: () => void;
+  verbs: VerbType[];
   onSelectRandom: (count: number) => void;
   onSelectRange: (range: [number, number]) => void;
   onStartQuiz: () => void;
@@ -22,13 +23,14 @@ const DEFAULT_RANDOM_COUNT = 10;
 const DEFAULT_RANGE: [number, number] = [0, 10];
 
 const PRESET_RANGES = [
+  { label: 'First 5', value: 5 },
   { label: 'First 10', value: 10 },
   { label: 'First 20', value: 20 },
   { label: 'First 30', value: 30 },
 ] as const;
 
 const SelectionToolbar: React.FC<SelectionToolbarProps> = ({
-  onClearSelection,
+  verbs,
   onSelectRandom,
   onSelectRange,
   onStartQuiz,
@@ -56,17 +58,12 @@ const SelectionToolbar: React.FC<SelectionToolbarProps> = ({
 
   const getSelectionText = () => {
     if (selectionMode === 'first') {
-      return `Selected verbs ${range[0]} to ${range[1]}`;
+      return ` ${range[1] - range[0]} verbs selected : from ${verbs[range[0]].verb} to ${verbs[range[1]].verb}`;
     }
     return `Random ${randomCount} verbs`;
   };
 
-  const handleClearSelection = () => {
-    onClearSelection();
-    setSelectionMode('first');
-    setRange(DEFAULT_RANGE);
-    setIsOpen(false);
-  };
+ 
 
   const renderRangeButtons = () => (
     <div className="grid grid-cols-3 gap-2 mb-3">
@@ -131,7 +128,7 @@ const SelectionToolbar: React.FC<SelectionToolbarProps> = ({
 
               <div className="space-y-2">
                 <div className="text-sm text-muted-foreground">
-                  Select verbs from position {range[0]} to {range[1]}
+                {range[1] - range[0]} verbs selected: from {verbs[range[0]].verb} to {verbs[range[1]].verb}
                 </div>
                 <Slider.Root
                   className="relative flex h-5 touch-none select-none items-center"
@@ -202,16 +199,7 @@ const SelectionToolbar: React.FC<SelectionToolbarProps> = ({
               </div>
             </div>
 
-            {/* Control Buttons */}
-            <div className="flex justify-end space-x-2 pt-2">
-              <Button
-                variant="outline"
-                onClick={handleClearSelection}
-                type="button"
-              >
-                Clear Selection
-              </Button>
-            </div>
+         
           </div>
         </div>
       )}

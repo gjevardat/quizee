@@ -25,40 +25,75 @@ interface VerbsTableProps {
   verbs: VerbType[];
 }
 
-const ScoreDialog: React.FC<ScoreDialogProps> = ({ 
-  isOpen, 
-  score, 
-  total, 
-  onClose, 
-  onRetry 
+const ScoreDialog: React.FC<ScoreDialogProps> = ({
+  isOpen,
+  score,
+  total,
+  onClose,
+  onRetry
 }) => {
-  const percentage = Math.round((score / total) * 100);
-  
+  const finalPercentage = Math.round((score / total) * 100);
+  const [displayedPercentage, setDisplayedPercentage] = useState(0);
+
+  useEffect(() => {
+    let animationFrame: number;
+    let startTime: number;
+    const duration = 1000; // Animation duration in milliseconds
+
+    if (isOpen) {
+      // Reset to 0 when dialog opens
+      setDisplayedPercentage(0);
+
+      const animate = (currentTime: number) => {
+        if (!startTime) startTime = currentTime;
+        const progress = Math.min((currentTime - startTime) / duration, 1);
+        
+        // Use easeOutQuad for smoother animation
+        const easeOutQuad = 1 - Math.pow(1 - progress, 2);
+        const currentValue = Math.round(easeOutQuad * finalPercentage);
+        
+        setDisplayedPercentage(currentValue);
+
+        if (progress < 1) {
+          animationFrame = requestAnimationFrame(animate);
+        }
+      };
+
+      animationFrame = requestAnimationFrame(animate);
+    }
+
+    return () => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+    };
+  }, [isOpen, finalPercentage]);
+
+  if (!isOpen) return null;
+
   return (
-    isOpen && 
     <Card className="w-full sm:max-w-md mx-auto">
-    <CardHeader>
-      <CardTitle>Quiz Results</CardTitle>
-    </CardHeader>
+      <CardHeader>
+        <CardTitle>Quiz Results</CardTitle>
+      </CardHeader>
 
-    <CardContent className="flex flex-col items-center gap-4 py-6">
-      <div className="text-6xl font-bold text-primary">
-        {percentage}%
-      </div>
-      <p className="text-center text-muted-foreground">
-        You got <span className="font-medium text-foreground">{score}</span> correct answers
-        out of <span className="font-medium text-foreground">{total}</span> possible answers
-      </p>
-    </CardContent>
+      <CardContent className="flex flex-col items-center gap-4 py-6">
+        <div className="text-6xl font-bold text-primary">
+          {displayedPercentage}%
+        </div>
+        <p className="text-center text-muted-foreground">
+          You got <span className="font-medium text-foreground">{score}</span> correct answers
+          out of <span className="font-medium text-foreground">{total}</span> possible answers
+        </p>
+      </CardContent>
 
-    <CardFooter className="flex gap-2 justify-end">
-      <Button variant="outline" onClick={onClose}>Close</Button>
-      <Button onClick={onRetry}>Try Again</Button>
-    </CardFooter>
-  </Card>
+      <CardFooter className="flex gap-2 justify-end">
+        <Button variant="outline" onClick={onClose}>Close</Button>
+        <Button onClick={onRetry}>Try Again</Button>
+      </CardFooter>
+    </Card>
   );
 };
-
 const VerbsTable: React.FC<VerbsTableProps> = ({ verbs }) => {
   const [verbsTable, setVerbsTable] = useState<VerbType[]>([]);
   const [quizState, setQuizState] = useState<QuizState>('preparing');
@@ -77,13 +112,9 @@ const VerbsTable: React.FC<VerbsTableProps> = ({ verbs }) => {
     });
   }, []);
 
-  const handleSelectRandom = useCallback((count: number) => {
-    setVerbsTable(prev => [...prev].sort(() => 0.5 - Math.random()).slice(0, count));
-  }, []);
-
-  const handleClearSelection = useCallback(() => {
-    setVerbsTable(verbs);
-  }, [verbs]);
+  const handleSelectRandom =(count: number) => {
+    setVerbsTable(verbs.sort(() => 0.5 - Math.random()).slice(0, count));
+  };
 
   const isFieldCorrect = useCallback((verb: VerbType, field: keyof VerbType) => {
     const originalVerb = verbs.find(v => v.index === verb.index);
@@ -113,20 +144,7 @@ const VerbsTable: React.FC<VerbsTableProps> = ({ verbs }) => {
     setShowScoreDialog(false);
   }, [verbs, selectedRange]);
 
-  /* const resetRandomFields = useCallback(() => {
-    const fields: (keyof VerbType)[] = ['verb', 'pastSimple', 'pastParticiple', 'frenchTranslation'];
-    
-    setVerbsTable(prev =>
-      prev.map(verb => {
-        const randomField = fields[Math.floor(Math.random() * fields.length)];
-        return {
-          ...verb,
-          [randomField]: ''
-        };
-      })
-    );
-  }, []); */
-
+  
 
   function resetRandomFields() {
 
@@ -214,7 +232,7 @@ const VerbsTable: React.FC<VerbsTableProps> = ({ verbs }) => {
       <Card className="w-full">
         <CardHeader>
           <SelectionToolbar
-            onClearSelection={handleClearSelection}
+            verbs = {verbs}
             onSelectRandom={handleSelectRandom}
             onSelectRange={setSelectedRange}
             onStartQuiz={() => {
